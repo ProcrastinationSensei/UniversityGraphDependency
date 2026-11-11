@@ -1,0 +1,7 @@
+# Configuration file for Dependency Visualizer (Variant 16)
+package_name = "express"
+repo_url = "https://registry.npmjs.org"
+test_mode = false
+output_file = "graph.svg"
+max_depth = 3
+filter_substring = ""
