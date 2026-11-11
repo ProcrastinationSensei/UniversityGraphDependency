@@ -1,0 +1,7 @@
+# Configuration file for Test Mode
+package_name = "A"
+repo_url = "test_repo.json"
+test_mode = true
+output_file = "test_graph.svg"
+max_depth = 4
+filter_substring = "X"
