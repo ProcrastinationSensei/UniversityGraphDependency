@@ -2,6 +2,6 @@
 package_name = "express"
 repo_url = "https://registry.npmjs.org"
 test_mode = false
-output_file = "graph.svg"
-max_depth = 3
+output_file = "react_graph.svg"
+max_depth = 100
 filter_substring = ""
