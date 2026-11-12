@@ -1,5 +1,3 @@
-"""Unit tests for dependency graph algorithm and operations."""
-
 import json
 import os
 import tempfile
@@ -9,10 +7,9 @@ from src.graph import build_graph_dfs, compute_load_order
 
 
 class TestGraph(unittest.TestCase):
-    """Test suite for graph construction and load order."""
 
-    def setUp(self) -> None:
-        """Create sample repository graph file."""
+    def __init__(self, method_name: str = "runTest") -> None:
+        super().__init__(method_name)
         self.data = {
             "A": ["B", "C"],
             "B": ["D"],
@@ -23,20 +20,16 @@ class TestGraph(unittest.TestCase):
             "TEST_X": ["X_FILTER"],
             "X_FILTER": [],
         }
-        self.tmp_file = tempfile.NamedTemporaryFile(
+        with tempfile.NamedTemporaryFile(
             "w", delete=False, suffix=".json"
-        )
-        json.dump(self.data, self.tmp_file)
-        self.tmp_file.close()
-
-    def tearDown(self) -> None:
-        """Clean up temporary test file."""
-        os.remove(self.tmp_file.name)
+        ) as tmp_file:
+            json.dump(self.data, tmp_file)
+            self.repo_file = tmp_file.name
+        self.addCleanup(os.remove, self.repo_file)
 
     def test_dfs_graph_building(self) -> None:
-        """Test building dependency graph using non-recursive DFS."""
         graph = build_graph_dfs(
-            "A", self.tmp_file.name, test_mode=True, max_depth=5, filter_sub=""
+            "A", self.repo_file, test_mode=True, max_depth=5, filter_sub=""
         )
         self.assertIn("A", graph.adj)
         self.assertIn("B", graph.adj["A"])
@@ -44,19 +37,16 @@ class TestGraph(unittest.TestCase):
         self.assertIn("D", graph.adj["B"])
 
     def test_depth_limiting(self) -> None:
-        """Test max_depth parameter stops exploration."""
         graph = build_graph_dfs(
-            "A", self.tmp_file.name, test_mode=True, max_depth=1, filter_sub=""
+            "A", self.repo_file, test_mode=True, max_depth=1, filter_sub=""
         )
         self.assertIn("A", graph.adj)
-        # Depth 1 allows direct children B, C but not exploring B's child D
         self.assertEqual(graph.adj.get("B", []), [])
 
     def test_filter_substring(self) -> None:
-        """Test filter_substring ignores matching packages."""
         graph = build_graph_dfs(
             "TEST_X",
-            self.tmp_file.name,
+            self.repo_file,
             test_mode=True,
             max_depth=3,
             filter_sub="X",
@@ -64,10 +54,9 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(graph.adj, {})
 
     def test_cycle_detection(self) -> None:
-        """Test cycle detection in graph."""
         graph = build_graph_dfs(
             "CYCLE_1",
-            self.tmp_file.name,
+            self.repo_file,
             test_mode=True,
             max_depth=5,
             filter_sub="",
@@ -75,9 +64,8 @@ class TestGraph(unittest.TestCase):
         self.assertTrue(len(graph.cycles) > 0)
 
     def test_load_order(self) -> None:
-        """Test post-order dependency load order calculation."""
         graph = build_graph_dfs(
-            "A", self.tmp_file.name, test_mode=True, max_depth=5, filter_sub=""
+            "A", self.repo_file, test_mode=True, max_depth=5, filter_sub=""
         )
         order = compute_load_order(graph, "A")
         self.assertEqual(order[-1], "A")

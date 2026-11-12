@@ -1,25 +1,16 @@
-"""Data fetching module for npm registry and test repository.
-
-Extracts direct package dependencies using standard urllib or local files.
-"""
-
 import json
 import os
 import urllib.error
 import urllib.request
 
 HTTP_OK = 200
+HTTP_NOT_FOUND = 404
 DEFAULT_TIMEOUT_SEC = 5
 
 
 def fetch_direct_dependencies(
     package_name: str, repo_url: str, test_mode: bool
 ) -> list[str]:
-    """Fetch direct dependencies for a package.
-
-    Routes to local JSON test repository if test_mode is True,
-    or npm registry HTTP API if test_mode is False.
-    """
 
     if test_mode:
         return _fetch_from_test_repo(package_name, repo_url)
@@ -27,7 +18,6 @@ def fetch_direct_dependencies(
 
 
 def _fetch_from_test_repo(package_name: str, repo_file: str) -> list[str]:
-    """Fetch direct dependencies from local test graph JSON file."""
 
     if not os.path.isfile(repo_file):
         raise FileNotFoundError(
@@ -47,10 +37,8 @@ def _fetch_from_test_repo(package_name: str, repo_file: str) -> list[str]:
 
 
 def _fetch_from_npm_registry(package_name: str, repo_url: str) -> list[str]:
-    """Fetch direct dependencies from npm registry endpoint."""
 
     base_url = repo_url.rstrip("/")
-    # Fetch package latest version metadata
     target_url = f"{base_url}/{package_name}/latest"
     req = urllib.request.Request(
         target_url, headers={"User-Agent": "DependencyVisualizer/1.0"}
@@ -69,8 +57,7 @@ def _fetch_from_npm_registry(package_name: str, repo_url: str) -> list[str]:
             deps_dict = metadata.get("dependencies", {})
             return list(deps_dict.keys())
     except urllib.error.HTTPError as err:
-        if err.code == 404:
-            # Package not found or has no dependencies
+        if err.code == HTTP_NOT_FOUND:
             return []
         raise ValueError(
             f"Failed to fetch package '{package_name}': HTTP {err.code}"

@@ -1,20 +1,13 @@
-"""Configuration module for Dependency Visualizer.
-
-Parses and validates user configuration from TOML files.
-"""
-
 from dataclasses import dataclass
 import os
 import sys
 
-# Constants to avoid magic numbers
 MIN_DEPTH_LIMIT = 0
 MAX_DEPTH_UPPER_BOUND = 100
 
 
 @dataclass
 class Config:
-    """Dataclass holding all configuration parameters."""
 
     package_name: str
     repo_url: str
@@ -25,10 +18,6 @@ class Config:
 
 
 def load_config(file_path: str) -> Config:
-    """Load configuration from a TOML file.
-
-    Raises FileNotFoundError if file does not exist or ValueError on parse.
-    """
 
     if not os.path.isfile(file_path):
         raise FileNotFoundError(f"Config file '{file_path}' not found.")
@@ -57,7 +46,6 @@ def load_config(file_path: str) -> Config:
 
 
 def _parse_simple_toml(file_path: str) -> dict:
-    """Fallback simple TOML line parser for legacy python environments."""
     result = {}
     with open(file_path, "r", encoding="utf-8") as fp:
         for line in fp:
@@ -80,10 +68,6 @@ def _parse_simple_toml(file_path: str) -> dict:
 
 
 def validate_config(config: Config) -> None:
-    """Validate parameter values in configuration object.
-
-    Raises ValueError if any parameter is invalid.
-    """
 
     if not config.package_name:
         raise ValueError("Config error: 'package_name' must not be empty.")
@@ -102,7 +86,6 @@ def validate_config(config: Config) -> None:
 
 
 def print_config(config: Config) -> None:
-    """Print configuration parameters in key-value format for Stage 1."""
 
     print("=== Configuration Parameters ===")
     print(f"package_name: {config.package_name}")

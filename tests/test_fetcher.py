@@ -1,5 +1,3 @@
-"""Unit tests for fetcher module."""
-
 import json
 import os
 import tempfile
@@ -9,10 +7,8 @@ from src.fetcher import fetch_direct_dependencies
 
 
 class TestFetcher(unittest.TestCase):
-    """Test suite for data fetcher."""
 
     def test_fetch_from_test_repo(self) -> None:
-        """Test fetching dependencies from local test JSON repository."""
         data = {"A": ["B", "C"], "B": ["D"]}
         with tempfile.NamedTemporaryFile(
             "w", delete=False, suffix=".json"

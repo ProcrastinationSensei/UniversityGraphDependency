@@ -1,21 +1,19 @@
-"""Visualization module for D2 markup and SVG diagram generation.
-
-Generates D2 diagram text and renders pure SVG vector graphics diagrams.
-"""
-
 from src.graph import DependencyGraph
 
-# Layout constants for SVG generation
 BOX_WIDTH = 130
 BOX_HEIGHT = 40
 X_GAP = 180
 Y_GAP = 70
 MARGIN_X = 50
 MARGIN_Y = 80
+NODE_LABEL_MAX_LENGTH = 16
+NODE_LABEL_TRUNCATION_SUFFIX = ".."
+NODE_LABEL_VISIBLE_LENGTH = (
+    NODE_LABEL_MAX_LENGTH - len(NODE_LABEL_TRUNCATION_SUFFIX)
+)
 
 
 def generate_d2_code(graph: DependencyGraph) -> str:
-    """Generate D2 diagram language description of dependency graph."""
 
     lines = ["# D2 Dependency Graph Visualization"]
     visited_edges: set[tuple[str, str]] = set()
@@ -36,7 +34,6 @@ def generate_d2_code(graph: DependencyGraph) -> str:
 def generate_svg_image(
     graph: DependencyGraph, output_file: str, root_pkg: str = ""
 ) -> None:
-    """Generate SVG image file representing dependency graph."""
 
     ranks = _compute_node_ranks(graph, root_pkg)
     positions = _calculate_positions(ranks)
@@ -61,12 +58,8 @@ def generate_svg_image(
         f"Dependency Graph: {root_pkg}</text>",
     ]
 
-    # Draw edges
     svg_parts.extend(_draw_svg_edges(graph, positions))
-
-    # Draw nodes
     svg_parts.extend(_draw_svg_nodes(positions, root_pkg))
-
     svg_parts.append("</svg>")
 
     with open(output_file, "w", encoding="utf-8") as fp:
@@ -76,7 +69,6 @@ def generate_svg_image(
 def _compute_node_ranks(
     graph: DependencyGraph, root_pkg: str
 ) -> dict[int, list[str]]:
-    """Assign graph nodes to horizontal layout ranks based on BFS depth."""
 
     ranks: dict[int, list[str]] = {}
     node_rank: dict[str, int] = {}
@@ -102,7 +94,6 @@ def _compute_node_ranks(
                 visited.add(child)
                 queue.append((child, depth + 1))
 
-    # Catch orphan nodes
     for node in graph.adj:
         if node not in node_rank:
             max_r = max(ranks.keys()) if ranks else 0
@@ -114,7 +105,6 @@ def _compute_node_ranks(
 def _calculate_positions(
     ranks: dict[int, list[str]]
 ) -> dict[str, tuple[int, int]]:
-    """Calculate X, Y canvas coordinates for each node."""
 
     positions = {}
     for rank_idx, nodes in ranks.items():
@@ -128,7 +118,6 @@ def _calculate_positions(
 def _calculate_canvas_size(
     positions: dict[str, tuple[int, int]]
 ) -> tuple[int, int]:
-    """Calculate SVG canvas width and height based on node coordinates."""
 
     if not positions:
         return (400, 300)
@@ -140,7 +129,6 @@ def _calculate_canvas_size(
 def _draw_svg_edges(
     graph: DependencyGraph, positions: dict[str, tuple[int, int]]
 ) -> list[str]:
-    """Generate SVG XML elements for directed edges between nodes."""
 
     edge_elements = []
     for parent, children in graph.adj.items():
@@ -170,7 +158,6 @@ def _draw_svg_edges(
 def _draw_svg_nodes(
     positions: dict[str, tuple[int, int]], root_pkg: str
 ) -> list[str]:
-    """Generate SVG XML elements for graph nodes with custom styling."""
 
     node_elements = []
     for node, (x, y) in positions.items():
@@ -181,8 +168,11 @@ def _draw_svg_nodes(
         )
         tx = x + 10
         ty = y + 24
-        # Truncate label if too long
-        display_name = node[:14] + ".." if len(node) > 16 else node
+        display_name = (
+            node[:NODE_LABEL_VISIBLE_LENGTH] + NODE_LABEL_TRUNCATION_SUFFIX
+            if len(node) > NODE_LABEL_MAX_LENGTH
+            else node
+        )
         node_elements.append(
             f'<text x="{tx}" y="{ty}" class="node">{display_name}</text>'
         )

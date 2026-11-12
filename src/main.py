@@ -1,19 +1,27 @@
-"""Main CLI entry point for Dependency Visualizer (Variant 16).
-
-Executes stages 1 to 5 of dependency analysis and graph visualization.
-"""
-
 import argparse
 import sys
+from typing import Optional
 
 from src.config import Config, load_config, print_config
 from src.fetcher import fetch_direct_dependencies
-from src.graph import build_graph_dfs, compute_load_order
+from src.graph import DependencyGraph, build_graph_dfs, compute_load_order
 from src.visualizer import generate_d2_code, generate_svg_image
+
+STAGE_CONFIGURATION = 1
+STAGE_DIRECT_DEPENDENCIES = 2
+STAGE_GRAPH_CONSTRUCTION = 3
+STAGE_LOAD_ORDER = 4
+STAGE_VISUALIZATION = 5
+SUPPORTED_STAGES = (
+    STAGE_CONFIGURATION,
+    STAGE_DIRECT_DEPENDENCIES,
+    STAGE_GRAPH_CONSTRUCTION,
+    STAGE_LOAD_ORDER,
+    STAGE_VISUALIZATION,
+)
 
 
 def parse_cli_args() -> argparse.Namespace:
-    """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Dependency Visualizer (Variant 16) - npm / test mode"
     )
@@ -26,20 +34,18 @@ def parse_cli_args() -> argparse.Namespace:
     parser.add_argument(
         "--stage",
         type=int,
-        choices=[1, 2, 3, 4, 5],
+        choices=SUPPORTED_STAGES,
         help="Execute specific stage (1-5)",
     )
     return parser.parse_args()
 
 
 def run_stage_1(config: Config) -> None:
-    """Stage 1: Output all user-configured parameters in key-value format."""
     print("\n--- STAGE 1: Minimal Prototype & Configuration ---")
     print_config(config)
 
 
 def run_stage_2(config: Config) -> None:
-    """Stage 2: Fetch and display direct dependencies."""
     print("\n--- STAGE 2: Data Collection (Direct Dependencies) ---")
     try:
         deps = fetch_direct_dependencies(
@@ -54,8 +60,7 @@ def run_stage_2(config: Config) -> None:
         print(f"Stage 2 Error: {err}")
 
 
-def run_stage_3(config: Config):
-    """Stage 3: Build dependency graph using non-recursive DFS."""
+def run_stage_3(config: Config) -> DependencyGraph:
     print("\n--- STAGE 3: Main Operations (DFS Graph Construction) ---")
     graph = build_graph_dfs(
         config.package_name,
@@ -78,8 +83,7 @@ def run_stage_3(config: Config):
     return graph
 
 
-def run_stage_4(config: Config, graph) -> None:
-    """Stage 4: Compute and output dependency load order."""
+def run_stage_4(config: Config, graph: DependencyGraph) -> None:
     print("\n--- STAGE 4: Additional Operations (Load Order) ---")
     load_order = compute_load_order(graph, config.package_name)
     print(f"Installation / Load Order for '{config.package_name}':")
@@ -101,8 +105,7 @@ def run_stage_4(config: Config, graph) -> None:
     )
 
 
-def run_stage_5(config: Config, graph) -> None:
-    """Stage 5: Generate D2 markup and SVG diagram."""
+def run_stage_5(config: Config, graph: DependencyGraph) -> None:
     print("\n--- STAGE 5: Visualization (D2 & SVG) ---")
     d2_code = generate_d2_code(graph)
     print("Generated D2 Diagram Code:")
@@ -119,8 +122,30 @@ def run_stage_5(config: Config, graph) -> None:
     print(f"Saved SVG visualization to: {config.output_file}")
 
 
+def _run_requested_stages(
+    config: Config, target_stage: Optional[int]
+) -> None:
+    if target_stage is None:
+        run_stage_1(config)
+        run_stage_2(config)
+        graph = run_stage_3(config)
+        run_stage_4(config, graph)
+        run_stage_5(config, graph)
+        return
+
+    if target_stage == STAGE_CONFIGURATION:
+        run_stage_1(config)
+    elif target_stage == STAGE_DIRECT_DEPENDENCIES:
+        run_stage_2(config)
+    else:
+        graph = run_stage_3(config)
+        if target_stage == STAGE_LOAD_ORDER:
+            run_stage_4(config, graph)
+        elif target_stage == STAGE_VISUALIZATION:
+            run_stage_5(config, graph)
+
+
 def main() -> None:
-    """Main application execution pipeline."""
     args = parse_cli_args()
     try:
         config = load_config(args.config)
@@ -128,22 +153,7 @@ def main() -> None:
         print(f"Configuration Loading Error: {err}", file=sys.stderr)
         sys.exit(1)
 
-    target_stage = args.stage
-
-    if target_stage is None or target_stage == 1:
-        run_stage_1(config)
-
-    if target_stage is None or target_stage == 2:
-        run_stage_2(config)
-
-    if target_stage is None or target_stage >= 3:
-        graph = run_stage_3(config)
-
-        if target_stage is None or target_stage == 4:
-            run_stage_4(config, graph)
-
-        if target_stage is None or target_stage == 5:
-            run_stage_5(config, graph)
+    _run_requested_stages(config, args.stage)
 
 
 if __name__ == "__main__":

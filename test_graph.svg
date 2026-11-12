@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="590" height="340" viewBox="0 0 590 340">
+<style>
+  .node { font-family: monospace; font-size: 13px; fill: #ffffff; }
+  .title { font-family: sans-serif; font-size: 16px; font-weight: bold; fill: #1e293b; }
+  .edge { stroke: #64748b; stroke-width: 2; fill: none; }
+</style>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+  </marker>
+</defs>
+<text x="50" y="40" class="title">Dependency Graph: A</text>
+<path d="M 180 100 C 220 100, 190 100, 230 100" class="edge" marker-end="url(#arrow)"/>
+<path d="M 180 100 C 220 100, 190 170, 230 170" class="edge" marker-end="url(#arrow)"/>
+<path d="M 360 170 C 400 170, 370 240, 410 240" class="edge" marker-end="url(#arrow)"/>
+<path d="M 360 100 C 400 100, 370 100, 410 100" class="edge" marker-end="url(#arrow)"/>
+<path d="M 360 100 C 400 100, 370 170, 410 170" class="edge" marker-end="url(#arrow)"/>
+<path d="M 540 100 C 580 100, 10 100, 50 100" class="edge" marker-end="url(#arrow)"/>
+<rect x="50" y="80" width="130" height="40" rx="6" fill="#2563eb"/>
+<text x="60" y="104" class="node">A</text>
+<rect x="230" y="80" width="130" height="40" rx="6" fill="#475569"/>
+<text x="240" y="104" class="node">B</text>
+<rect x="230" y="150" width="130" height="40" rx="6" fill="#475569"/>
+<text x="240" y="174" class="node">C</text>
+<rect x="410" y="80" width="130" height="40" rx="6" fill="#475569"/>
+<text x="420" y="104" class="node">D</text>
+<rect x="410" y="150" width="130" height="40" rx="6" fill="#475569"/>
+<text x="420" y="174" class="node">E</text>
+<rect x="410" y="220" width="130" height="40" rx="6" fill="#475569"/>
+<text x="420" y="244" class="node">F</text>
+</svg>
